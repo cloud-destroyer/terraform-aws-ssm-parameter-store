@@ -14,11 +14,12 @@ resource "aws_ssm_parameter" "default" {
   for_each = local.parameter_write
   name     = each.key
 
-  description = each.value.description
-  type        = each.value.type
-  tier        = each.value.tier
-  key_id      = each.value.type == "SecureString" && length(var.kms_arn) > 0 ? var.kms_arn : ""
-  value       = each.value.value
+  description     = each.value.description
+  type            = each.value.type
+  tier            = each.value.tier
+  key_id          = each.value.type == "SecureString" && length(var.kms_arn) > 0 ? var.kms_arn : ""
+  value           = lookup(each.value, "value", null)
+  insecure_value  = lookup(each.value, "insecure_value", null)
   # Note on the deprecation warning:
   # Configurations expecting the standard update flow will need to keep overwrite = true set
   # until this becomes the default behavior in v6.0.0. Removing it in v5.X will result in
@@ -39,7 +40,8 @@ resource "aws_ssm_parameter" "ignore_value_changes" {
   type            = each.value.type
   tier            = each.value.tier
   key_id          = each.value.type == "SecureString" && length(var.kms_arn) > 0 ? var.kms_arn : ""
-  value           = each.value.value
+  value           = lookup(each.value, "value", null)
+  insecure_value  = lookup(each.value, "insecure_value", null)
   overwrite       = each.value.overwrite
   allowed_pattern = each.value.allowed_pattern
   data_type       = each.value.data_type
@@ -49,6 +51,7 @@ resource "aws_ssm_parameter" "ignore_value_changes" {
   lifecycle {
     ignore_changes = [
       value,
+      insecure_value,
     ]
   }
 }
