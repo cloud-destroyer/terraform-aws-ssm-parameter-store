@@ -2,9 +2,11 @@
 locals {
   name_list = compact(concat(keys(local.parameter_write), keys(local.parameter_write_ignore_values), local.parameter_read))
 
+  read_value_list = [for p in data.aws_ssm_parameter.read.* : coalesce(p.value, p.insecure_value)]
+
   value_list = compact(
     concat(
-      [for p in aws_ssm_parameter.default : p.value], [for p in aws_ssm_parameter.ignore_value_changes : p.value], data.aws_ssm_parameter.read.*.value
+      [for p in aws_ssm_parameter.default : coalesce(p.value, p.insecure_value)], [for p in aws_ssm_parameter.ignore_value_changes : coalesce(p.value, p.insecure_value)], local.read_value_list
     )
   )
 
